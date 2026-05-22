@@ -223,11 +223,23 @@ def _translate_page(page: fitz.Page, sorted_terms: list) -> None:
     except Exception:
         drawings = []
 
-    bg_colors = [_bg_color(rect, drawings) for rect, *_ in replacements]
+    raw_bgs = [_bg_color(rect, drawings) for rect, *_ in replacements]
 
-    for (rect, *_), bg in zip(replacements, bg_colors):
-        page.add_redact_annot(rect, fill=bg)
-    page.apply_redactions()
+    # Определяем fill для каждой аннотации:
+    # - Фон действительно тёмный (тёмный bg + светлый текст) → fill=тёмный цвет
+    # - Всё остальное (светлый bg или ошибочная детекция) → fill=None,
+    #   тогда оригинальный фоновый прямоугольник сохранится после apply_redactions
+    fill_colors = []
+    for (_, _, _, color, *_), bg in zip(replacements, raw_bgs):
+        bg_lum = 0.299*bg[0] + 0.587*bg[1] + 0.114*bg[2]
+        fg_lum = 0.299*color[0] + 0.587*color[1] + 0.114*color[2]
+        # Настоящий тёмный фон: bg тёмный И текст светлый
+        fill_colors.append(bg if (bg_lum < 0.4 and fg_lum >= 0.4) else None)
+
+    for (rect, *_), fill in zip(replacements, fill_colors):
+        page.add_redact_annot(rect, fill=fill)
+    # graphics=0 (PDF_REDACT_LINE_ART_NONE) — не удалять векторные фоны
+    page.apply_redactions(graphics=0)
 
     registered: set[str] = set()
     for _, _, _, _, bold, italic, _ in replacements:
@@ -236,9 +248,12 @@ def _translate_page(page: fitz.Page, sorted_terms: list) -> None:
             page.insert_font(fontname=fname, fontfile=ffile)
             registered.add(fname)
 
-    for (rect, text, orig_size, color, bold, italic, align), bg in zip(replacements, bg_colors):
+    for (rect, text, orig_size, color, bold, italic, align), fill, bg in zip(replacements, fill_colors, raw_bgs):
         fname, _, fobj = _FONT_MAP[(bold, italic)]
-        fg = _ensure_contrast(bg, color)
+        # Если fill=None — фон оригинальный светлый, используем span_color напрямую.
+        # Если fill задан — фон тёмный, _ensure_contrast может переключить на белый.
+        fg = _ensure_contrast(fill, color) if fill is not None else color
+        print(f'[C] "{text[:30]}"  raw_bg={tuple(f"{v:.2f}" for v in bg)}  fill={tuple(f"{v:.2f}" for v in fill) if fill else "None"}  fg={tuple(f"{v:.2f}" for v in fg)}')
         size = _fit_size(text, fobj, rect.width, orig_size)
         tw   = fobj.text_length(text, fontsize=size)
         if align == 2:
