@@ -1,0 +1,10 @@
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+.git/
+error.log
+app.py
+extract_terms.py
+*.pdf
+*.csv

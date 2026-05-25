@@ -28,6 +28,21 @@ except ImportError:
 # Шрифты (кросс-платформенно)
 # ---------------------------------------------------------------------------
 
+_LINUX_FONT_MAP = {
+    "arial.ttf":   ["LiberationSans-Regular.ttf",    "DejaVuSans.ttf"],
+    "arialbd.ttf": ["LiberationSans-Bold.ttf",        "DejaVuSans-Bold.ttf"],
+    "ariali.ttf":  ["LiberationSans-Italic.ttf",      "DejaVuSans-Oblique.ttf"],
+    "arialbi.ttf": ["LiberationSans-BoldItalic.ttf",  "DejaVuSans-BoldOblique.ttf"],
+}
+
+_LINUX_FONT_DIRS = [
+    Path("/usr/share/fonts/truetype/liberation"),
+    Path("/usr/share/fonts/truetype/dejavu"),
+    Path("/usr/share/fonts/truetype/msttcorefonts"),
+    Path("/usr/share/fonts"),
+]
+
+
 def _find_font(win: str, mac_names: list) -> str | None:
     if sys.platform == "win32":
         p = Path("C:/Windows/Fonts") / win
@@ -40,11 +55,10 @@ def _find_font(win: str, mac_names: list) -> str | None:
                 p = d / name
                 if p.exists():
                     return str(p)
-    else:
-        for d in [Path("/usr/share/fonts/truetype/msttcorefonts"),
-                  Path("/usr/share/fonts/truetype"),
-                  Path("/usr/share/fonts")]:
-            for name in [win] + mac_names:
+    else:  # Linux
+        candidates = _LINUX_FONT_MAP.get(win, []) + [win]
+        for d in _LINUX_FONT_DIRS:
+            for name in candidates:
                 p = d / name
                 if p.exists():
                     return str(p)
