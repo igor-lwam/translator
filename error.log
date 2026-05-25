@@ -1,0 +1,11 @@
+Traceback (most recent call last):
+  File "C:\Report translater\app.py", line 698, in <module>
+    app.mainloop()
+    ~~~~~~~~~~~~^^
+  File "C:\Users\i.karavashkin\AppData\Roaming\uv\python\cpython-3.14-windows-x86_64-none\Lib\tkinter\__init__.py", line 1613, in mainloop
+    self.tk.mainloop(n)
+    ~~~~~~~~~~~~~~~~^^^
+  File "C:\Users\i.karavashkin\AppData\Roaming\uv\python\cpython-3.14-windows-x86_64-none\Lib\tkinter\__init__.py", line 2088, in __call__
+    def __call__(self, *args):
+    
+KeyboardInterrupt
