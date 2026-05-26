@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 
 const TYPES = ['термин', 'предложение', 'число', 'код', 'не латиница']
 
-function EditableCell({ value, onCommit }) {
+function EditableCell({ value, onCommit, placeholder = 'введите перевод...' }) {
   const [draft, setDraft] = useState(value)
   const escaping = useRef(false)
 
@@ -22,7 +22,7 @@ function EditableCell({ value, onCommit }) {
     <input
       className="input-ru"
       value={draft}
-      placeholder="введите перевод..."
+      placeholder={placeholder}
       onChange={e => setDraft(e.target.value)}
       onKeyDown={handleKeyDown}
       onBlur={handleBlur}
@@ -53,7 +53,13 @@ export default function DictTable({ rows, onUpdateCell }) {
         <tbody>
           {rows.map(row => (
             <tr key={row.id} className={row.enabled ? '' : 'row-dim'}>
-              <td className="cell-orig" title={row.original}>{row.original}</td>
+              <td className="cell-orig">
+                <EditableCell
+                  value={row.original}
+                  onCommit={v => onUpdateCell(row.id, 'original', v)}
+                  placeholder="оригинал..."
+                />
+              </td>
               <td>
                 <select
                   value={row.type}
