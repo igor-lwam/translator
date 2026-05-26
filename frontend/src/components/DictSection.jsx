@@ -28,8 +28,11 @@ function downloadBlob(blob, filename) {
   URL.revokeObjectURL(url)
 }
 
+const EMPTY_FILTERS = { search: '', type: 'all', ru: 'all', enabled: 'all' }
+
 export default function DictSection({ dict, onUpdateCell, onAddRow, onClearDict, onMergeItems, onReplaceDict }) {
-  const [filters, setFilters] = useState({ search: '', type: 'all', ru: 'all', enabled: 'all' })
+  const [pendingFilters, setPendingFilters] = useState(EMPTY_FILTERS)
+  const [appliedFilters, setAppliedFilters] = useState(EMPTY_FILTERS)
   const [loading, setLoading] = useState('')
   const [showAdd, setShowAdd] = useState(false)
   const [newOrig, setNewOrig] = useState('')
@@ -41,7 +44,7 @@ export default function DictSection({ dict, onUpdateCell, onAddRow, onClearDict,
   const needRu  = dict.filter(r => r.enabled && !r.russian.trim()).length
 
   const filtered = useMemo(() => dict.filter(row => {
-    const { search, type, ru, enabled } = filters
+    const { search, type, ru, enabled } = appliedFilters
     if (search && !row.original.toLowerCase().includes(search.toLowerCase())
         && !row.russian.toLowerCase().includes(search.toLowerCase())) return false
     if (type !== 'all' && row.type !== type) return false
@@ -50,10 +53,13 @@ export default function DictSection({ dict, onUpdateCell, onAddRow, onClearDict,
     if (enabled === 'yes' && !row.enabled) return false
     if (enabled === 'no'  &&  row.enabled) return false
     return true
-  }), [dict, filters])
+  }), [dict, appliedFilters])
 
-  function setFilter(k, v) { setFilters(f => ({ ...f, [k]: v })) }
-  function resetFilters()  { setFilters({ search: '', type: 'all', ru: 'all', enabled: 'all' }) }
+  function setFilter(k, v) { setPendingFilters(f => ({ ...f, [k]: v })) }
+  function applyFilters()  { setAppliedFilters(pendingFilters) }
+  function resetFilters()  { setPendingFilters(EMPTY_FILTERS); setAppliedFilters(EMPTY_FILTERS) }
+
+  const filtersActive = Object.values(appliedFilters).some(v => v !== 'all' && v !== '')
 
   function flash(text, kind = 'info') {
     setMsg({ text, kind })
@@ -189,26 +195,28 @@ export default function DictSection({ dict, onUpdateCell, onAddRow, onClearDict,
 
       {/* Filters */}
       <div className="filters">
-        <input placeholder="🔍 Поиск..." value={filters.search}
-          onChange={e => setFilter('search', e.target.value)} />
-        <select value={filters.type} onChange={e => setFilter('type', e.target.value)}>
+        <input placeholder="🔍 Поиск..." value={pendingFilters.search}
+          onChange={e => setFilter('search', e.target.value)}
+          onKeyDown={e => e.key === 'Enter' && applyFilters()} />
+        <select value={pendingFilters.type} onChange={e => setFilter('type', e.target.value)}>
           <option value="all">Все типы</option>
           {TYPES.map(t => <option key={t} value={t}>{t}</option>)}
         </select>
-        <select value={filters.ru} onChange={e => setFilter('ru', e.target.value)}>
+        <select value={pendingFilters.ru} onChange={e => setFilter('ru', e.target.value)}>
           <option value="all">Все</option>
           <option value="without">Без перевода</option>
           <option value="with">С переводом</option>
         </select>
-        <select value={filters.enabled} onChange={e => setFilter('enabled', e.target.value)}>
+        <select value={pendingFilters.enabled} onChange={e => setFilter('enabled', e.target.value)}>
           <option value="all">Все</option>
           <option value="yes">Только ✓</option>
           <option value="no">Только —</option>
         </select>
+        <button className="btn btn-primary" onClick={applyFilters}>Найти</button>
         <button className="btn" onClick={resetFilters}>Сброс</button>
       </div>
 
-      {filtered.length < total && (
+      {filtersActive && filtered.length < total && (
         <p className="filter-caption">
           Показано <strong>{filtered.length}</strong> из {total} &nbsp;|&nbsp;
           Совет: используйте <code>*</code> для переменных частей — <code>Creation: *</code> → <code>Создание: *</code>
