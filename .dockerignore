@@ -3,8 +3,12 @@ __pycache__/
 *.pyc
 *.pyo
 .git/
-error.log
-app.py
-extract_terms.py
+frontend/node_modules/
+frontend/dist/
 *.pdf
 *.csv
+streamlit_app.py
+app.py
+extract_terms.py
+.streamlit/
+error.log
