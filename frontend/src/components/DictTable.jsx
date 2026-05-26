@@ -1,4 +1,34 @@
+import { useEffect, useRef, useState } from 'react'
+
 const TYPES = ['термин', 'предложение', 'число', 'код', 'не латиница']
+
+function EditableCell({ value, onCommit }) {
+  const [draft, setDraft] = useState(value)
+  const escaping = useRef(false)
+
+  useEffect(() => { setDraft(value) }, [value])
+
+  function handleKeyDown(e) {
+    if (e.key === 'Enter')  { onCommit(draft); e.target.blur() }
+    if (e.key === 'Escape') { escaping.current = true; e.target.blur() }
+  }
+
+  function handleBlur() {
+    if (escaping.current) { escaping.current = false; setDraft(value) }
+    else { onCommit(draft) }
+  }
+
+  return (
+    <input
+      className="input-ru"
+      value={draft}
+      placeholder="введите перевод..."
+      onChange={e => setDraft(e.target.value)}
+      onKeyDown={handleKeyDown}
+      onBlur={handleBlur}
+    />
+  )
+}
 
 export default function DictTable({ rows, onUpdateCell }) {
   if (!rows.length) {
@@ -33,11 +63,9 @@ export default function DictTable({ rows, onUpdateCell }) {
                 </select>
               </td>
               <td>
-                <input
-                  className="input-ru"
+                <EditableCell
                   value={row.russian}
-                  placeholder="введите перевод..."
-                  onChange={e => onUpdateCell(row.id, 'russian', e.target.value)}
+                  onCommit={v => onUpdateCell(row.id, 'russian', v)}
                 />
               </td>
               <td style={{ textAlign: 'center' }}>
