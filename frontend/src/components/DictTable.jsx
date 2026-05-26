@@ -14,8 +14,8 @@ function EditableCell({ value, onCommit }) {
   }
 
   function handleBlur() {
-    if (escaping.current) { escaping.current = false; setDraft(value) }
-    else { onCommit(draft) }
+    escaping.current = false
+    setDraft(value)
   }
 
   return (
