@@ -34,6 +34,7 @@ export default function DictSection({ dict, onUpdateCell, onAddRow, onClearDict,
   const [pendingFilters, setPendingFilters] = useState(EMPTY_FILTERS)
   const [appliedFilters, setAppliedFilters] = useState(EMPTY_FILTERS)
   const [loading, setLoading] = useState('')
+  const [csvDelimiter, setCsvDelimiter] = useState(',')
   const [showAdd, setShowAdd] = useState(false)
   const [newOrig, setNewOrig] = useState('')
   const [newRu, setNewRu] = useState('')
@@ -91,6 +92,7 @@ export default function DictSection({ dict, onUpdateCell, onAddRow, onClearDict,
     try {
       const fd = new FormData()
       fd.append('file', file)
+      fd.append('delimiter', csvDelimiter)
       const res = await fetch('/api/parse-csv', { method: 'POST', body: fd })
       const data = await res.json()
       onReplaceDict(data.items)
@@ -105,7 +107,7 @@ export default function DictSection({ dict, onUpdateCell, onAddRow, onClearDict,
       const res = await fetch('/api/export-csv', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ items: dict }),
+        body: JSON.stringify({ items: dict, delimiter: csvDelimiter }),
       })
       downloadBlob(await res.blob(), 'mapping.csv')
     } catch (err) {
@@ -160,6 +162,14 @@ export default function DictSection({ dict, onUpdateCell, onAddRow, onClearDict,
             <input type="file" accept=".csv" onChange={handleLoadCSV} />
           </label>
           <button className="btn" onClick={handleExportCSV}>💾 Скачать CSV</button>
+          <label className="delimiter-label">
+            Разделитель:
+            <select value={csvDelimiter} onChange={e => setCsvDelimiter(e.target.value)} className="delimiter-select">
+              <option value=",">запятая ( , )</option>
+              <option value=";">точка с запятой ( ; )</option>
+              <option value="	">табуляция ( ⇥ )</option>
+            </select>
+          </label>
         </div>
 
         <div className="toolbar-group">

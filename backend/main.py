@@ -104,10 +104,12 @@ async def auto_translate(data: dict):
 
 
 @app.post("/api/parse-csv")
-async def parse_csv(file: UploadFile = File(...)):
+async def parse_csv(file: UploadFile = File(...), delimiter: str = Form(",")):
+    if len(delimiter) != 1:
+        delimiter = ","
     content = await file.read()
     text = content.decode("utf-8-sig")
-    reader = csv.reader(io.StringIO(text))
+    reader = csv.reader(io.StringIO(text), delimiter=delimiter)
     items = []
     header_skipped = False
     for row in reader:
@@ -135,8 +137,11 @@ async def parse_csv(file: UploadFile = File(...)):
 @app.post("/api/export-csv")
 async def export_csv(data: dict):
     items = data.get("items", [])
+    delimiter = data.get("delimiter", ",")
+    if len(delimiter) != 1:
+        delimiter = ","
     buf = io.StringIO()
-    writer = csv.writer(buf)
+    writer = csv.writer(buf, delimiter=delimiter)
     writer.writerow(["original", "type", "russian", "enabled"])
     for item in items:
         writer.writerow([
