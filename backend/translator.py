@@ -108,9 +108,10 @@ def detect_text_type(text: str) -> str:
     return "предложение"
 
 
-def _apply_dict(text: str, sorted_terms: list) -> str:
+def _apply_dict(text: str, sorted_terms: list) -> tuple[str, float | None]:
+    """Returns (translated_text, font_size_override_or_None)."""
     stripped = text.strip()
-    for en, ru in sorted_terms:
+    for en, ru, size_override in sorted_terms:
         if not ru.strip():
             continue
         if '*' in en:
@@ -126,14 +127,14 @@ def _apply_dict(text: str, sorted_terms: list) -> str:
                 result = ru
                 for cap in m.groups():
                     result = result.replace('*', cap, 1)
-                return result
+                return result, size_override
         elif stripped.lower() == en.strip().lower():
-            return ru.strip()
+            return ru.strip(), size_override
     result = text
-    for en, ru in sorted_terms:
+    for en, ru, _ in sorted_terms:
         if ru.strip() and '*' not in en:
             result = re.sub(r'(?i)\b' + re.escape(en) + r'\b', ru, result)
-    return result
+    return result, None
 
 
 def _block_align(block: dict) -> int:
@@ -199,7 +200,7 @@ def _translate_page(page: fitz.Page, sorted_terms: list) -> None:
         for line in block.get("lines", []):
             spans = line.get("spans", [])
             line_text = "".join(sp.get("text", "") for sp in spans)
-            translated = _apply_dict(line_text, sorted_terms)
+            translated, size_override = _apply_dict(line_text, sorted_terms)
             if translated.strip() == line_text.strip() or not translated.strip():
                 continue
             rect = fitz.Rect(line["bbox"])
@@ -220,7 +221,8 @@ def _translate_page(page: fitz.Page, sorted_terms: list) -> None:
                             (raw & 0xFF) / 255.0,
                         )
             align = _block_align({"bbox": line["bbox"], "lines": [line]})
-            replacements.append((rect, translated.strip(), size, color, bool(bold), bool(italic), align))
+            final_size = float(size_override) if size_override is not None else size
+            replacements.append((rect, translated.strip(), final_size, color, bool(bold), bool(italic), align))
 
     if not replacements:
         return
@@ -286,9 +288,9 @@ def translate_pdf_bytes(pdf_bytes: bytes, sorted_terms: list,
 
 
 def extract_lines_from_pdf_bytes(pdf_bytes: bytes,
-                                  progress_cb=None) -> list[tuple[str, str]]:
+                                  progress_cb=None) -> list[tuple[str, str, float]]:
     doc = fitz.open(stream=pdf_bytes, filetype="pdf")
-    seen: dict[str, str] = {}
+    seen: dict[str, tuple[str, float]] = {}
     total = len(doc)
     for i, page in enumerate(doc):
         if progress_cb:
@@ -297,13 +299,18 @@ def extract_lines_from_pdf_bytes(pdf_bytes: bytes,
             if block.get("type") != 0:
                 continue
             for line in block.get("lines", []):
-                text = "".join(
-                    sp.get("text", "") for sp in line.get("spans", [])
-                ).strip()
+                spans = line.get("spans", [])
+                text = "".join(sp.get("text", "") for sp in spans).strip()
                 if text and text not in seen:
-                    seen[text] = detect_text_type(text)
+                    best_len, size = -1, 10.0
+                    for sp in spans:
+                        ln = len(sp.get("text", ""))
+                        if ln > best_len:
+                            best_len = ln
+                            size = float(sp.get("size", 10.0))
+                    seen[text] = (detect_text_type(text), size)
     doc.close()
-    return list(seen.items())
+    return [(text, typ, size) for text, (typ, size) in seen.items()]
 
 
 def auto_translate_texts(texts: list[str], progress_cb=None) -> dict[str, str]:

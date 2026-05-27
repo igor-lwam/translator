@@ -42,10 +42,11 @@ async def extract_pdf(file: UploadFile = File(...)):
         {
             "original": text,
             "type": typ,
+            "fontSize": round(size, 1),
             "russian": "",
             "enabled": typ in DEFAULT_ENABLED_TYPES,
         }
-        for text, typ in lines
+        for text, typ, size in lines
     ]
     return {"items": items}
 
@@ -55,7 +56,10 @@ async def translate_pdf(file: UploadFile = File(...), terms: str = Form(...)):
     pdf_bytes = await file.read()
     raw_terms = json.loads(terms)
     sorted_terms = sorted(
-        [(t["original"], t["russian"]) for t in raw_terms if t.get("russian", "").strip()],
+        [
+            (t["original"], t["russian"], t.get("fontSizeRu") or None)
+            for t in raw_terms if t.get("russian", "").strip()
+        ],
         key=lambda x: len(x[0]),
         reverse=True,
     )

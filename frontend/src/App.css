@@ -135,6 +135,12 @@ input:focus { border-color: #2563eb; box-shadow: 0 0 0 2px #dbeafe; }
 .input-ru:focus { outline: none; border-color: #2563eb; box-shadow: 0 0 0 2px #dbeafe; }
 .input-ru::placeholder { color: #9ca3af; }
 
+.input-fontsize {
+  width: 58px; padding: 3px 4px; border: 1px solid #e5e7eb;
+  border-radius: 4px; font-size: 12px; text-align: center;
+}
+.input-fontsize:focus { outline: none; border-color: #2563eb; }
+
 .empty-msg { text-align: center; padding: 40px; color: #9ca3af; }
 
 /* ---- Upload / Translate ---- */

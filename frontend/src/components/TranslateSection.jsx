@@ -24,7 +24,7 @@ export default function TranslateSection({ dict }) {
 
   const activeTerms = dict
     .filter(r => r.enabled && r.russian.trim())
-    .map(r => ({ original: r.original, russian: r.russian }))
+    .map(r => ({ original: r.original, russian: r.russian, fontSizeRu: r.fontSizeRu || null }))
     .sort((a, b) => b.original.length - a.original.length)
 
   function addFiles(e) {

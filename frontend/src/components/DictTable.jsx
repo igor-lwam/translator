@@ -44,9 +44,11 @@ export default function DictTable({ rows, onUpdateCell }) {
       <table className="dict-table">
         <thead>
           <tr>
-            <th style={{ width: '35%' }}>Оригинал</th>
-            <th style={{ width: '12%' }}>Тип</th>
+            <th style={{ width: '30%' }}>Оригинал</th>
+            <th style={{ width: '10%' }}>Тип</th>
             <th>Перевод</th>
+            <th style={{ width: '64px', textAlign: 'center' }}>Размер</th>
+            <th style={{ width: '72px', textAlign: 'center' }}>Размер (пер.)</th>
             <th style={{ width: '48px', textAlign: 'center' }}>✓</th>
           </tr>
         </thead>
@@ -72,6 +74,18 @@ export default function DictTable({ rows, onUpdateCell }) {
                 <EditableCell
                   value={row.russian}
                   onCommit={v => onUpdateCell(row.id, 'russian', v)}
+                />
+              </td>
+              <td style={{ textAlign: 'center', color: '#6b7280', fontSize: '12px' }}>
+                {row.fontSize != null ? row.fontSize.toFixed(1) : '—'}
+              </td>
+              <td style={{ textAlign: 'center' }}>
+                <input
+                  type="number"
+                  className="input-fontsize"
+                  value={row.fontSizeRu ?? row.fontSize ?? ''}
+                  min="4" max="72" step="0.5"
+                  onChange={e => onUpdateCell(row.id, 'fontSizeRu', e.target.value ? parseFloat(e.target.value) : null)}
                 />
               </td>
               <td style={{ textAlign: 'center' }}>
