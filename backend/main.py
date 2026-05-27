@@ -61,8 +61,7 @@ async def translate_pdf(file: UploadFile = File(...), terms: str = Form(...)):
             (t["original"], t["russian"], t.get("fontSize"), t.get("fontSizeRu") or None)
             for t in raw_terms if t.get("russian", "").strip()
         ],
-        key=lambda x: len(x[0]),
-        reverse=True,
+        key=lambda x: (-len(x[0]), x[2] is None),
     )
 
     loop = asyncio.get_event_loop()
