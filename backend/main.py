@@ -55,6 +55,7 @@ async def extract_pdf(file: UploadFile = File(...)):
 async def translate_pdf(file: UploadFile = File(...), terms: str = Form(...)):
     pdf_bytes = await file.read()
     raw_terms = json.loads(terms)
+    all_originals_lower = [t["original"].strip().lower() for t in raw_terms if t["original"].strip()]
     sorted_terms = sorted(
         [
             (t["original"], t["russian"], t.get("fontSizeRu") or None)
@@ -75,7 +76,7 @@ async def translate_pdf(file: UploadFile = File(...), terms: str = Form(...)):
     async def run_translation():
         try:
             result = await loop.run_in_executor(
-                None, lambda: translate_pdf_bytes(pdf_bytes, sorted_terms, progress_cb)
+                None, lambda: translate_pdf_bytes(pdf_bytes, sorted_terms, progress_cb, all_originals_lower)
             )
             await queue.put({"done": True, "pdf": base64.b64encode(result).decode()})
         except Exception as e:
