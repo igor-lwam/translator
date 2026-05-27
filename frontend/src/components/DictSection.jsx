@@ -34,7 +34,7 @@ export default function DictSection({ dict, onUpdateCell, onAddRow, onClearDict,
   const [pendingFilters, setPendingFilters] = useState(EMPTY_FILTERS)
   const [appliedFilters, setAppliedFilters] = useState(EMPTY_FILTERS)
   const [loading, setLoading] = useState('')
-  const [csvDelimiter, setCsvDelimiter] = useState(',')
+  const [csvDelimiter, setCsvDelimiter] = useState(';')
   const [showAdd, setShowAdd] = useState(false)
   const [newOrig, setNewOrig] = useState('')
   const [newRu, setNewRu] = useState('')
