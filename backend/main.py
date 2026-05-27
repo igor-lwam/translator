@@ -158,7 +158,7 @@ async def export_csv(data: dict):
     for item in items:
         writer.writerow([
             item["original"], item["type"], item["russian"],
-            "✓" if item.get("enabled") else "—",
+            "1" if item.get("enabled") else "0",
             item.get("fontSize") if item.get("fontSize") is not None else "",
             item.get("fontSizeRu") if item.get("fontSizeRu") is not None else "",
             item.get("page") if item.get("page") is not None else "",
