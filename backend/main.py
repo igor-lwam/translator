@@ -57,7 +57,7 @@ async def translate_pdf(file: UploadFile = File(...), terms: str = Form(...)):
     raw_terms = json.loads(terms)
     sorted_terms = sorted(
         [
-            (t["original"], t["russian"], t.get("fontSizeRu") or None)
+            (t["original"], t["russian"], t.get("fontSize"), t.get("fontSizeRu") or None)
             for t in raw_terms if t.get("russian", "").strip()
         ],
         key=lambda x: len(x[0]),

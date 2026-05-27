@@ -76,8 +76,14 @@ export default function DictTable({ rows, onUpdateCell }) {
                   onCommit={v => onUpdateCell(row.id, 'russian', v)}
                 />
               </td>
-              <td style={{ textAlign: 'center', color: '#6b7280', fontSize: '12px' }}>
-                {row.fontSize != null ? row.fontSize.toFixed(1) : '—'}
+              <td style={{ textAlign: 'center' }}>
+                <input
+                  type="number"
+                  className="input-fontsize"
+                  value={row.fontSize ?? ''}
+                  min="4" max="72" step="0.5"
+                  onChange={e => onUpdateCell(row.id, 'fontSize', e.target.value ? parseFloat(e.target.value) : null)}
+                />
               </td>
               <td style={{ textAlign: 'center' }}>
                 <input
