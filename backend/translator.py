@@ -289,7 +289,7 @@ def translate_pdf_bytes(pdf_bytes: bytes, sorted_terms: list,
 def extract_lines_from_pdf_bytes(pdf_bytes: bytes,
                                   progress_cb=None) -> list[tuple[str, str, float]]:
     doc = fitz.open(stream=pdf_bytes, filetype="pdf")
-    seen: dict[tuple[str, float], str] = {}
+    seen: dict[tuple[str, float], tuple[str, int]] = {}
     total = len(doc)
     for i, page in enumerate(doc):
         if progress_cb:
@@ -309,9 +309,9 @@ def extract_lines_from_pdf_bytes(pdf_bytes: bytes,
                             size = float(sp.get("size", 10.0))
                     key = (text, round(size, 1))
                     if key not in seen:
-                        seen[key] = detect_text_type(text)
+                        seen[key] = (detect_text_type(text), i + 1)
     doc.close()
-    return [(text, typ, size) for (text, size), typ in seen.items()]
+    return [(text, typ, size, page) for (text, size), (typ, page) in seen.items()]
 
 
 def auto_translate_texts(texts: list[str], progress_cb=None) -> dict[str, str]:

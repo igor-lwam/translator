@@ -45,6 +45,7 @@ export default function DictTable({ rows, onUpdateCell }) {
         <thead>
           <tr>
             <th style={{ width: '28%' }}>Оригинал</th>
+            <th style={{ width: '40px', textAlign: 'center' }}>Стр.</th>
             <th style={{ width: '64px', textAlign: 'center' }}>Размер, pt</th>
             <th style={{ width: '10%' }}>Тип</th>
             <th>Перевод</th>
@@ -61,6 +62,9 @@ export default function DictTable({ rows, onUpdateCell }) {
                   onCommit={v => onUpdateCell(row.id, 'original', v)}
                   placeholder="оригинал..."
                 />
+              </td>
+              <td style={{ textAlign: 'center', color: '#9ca3af', fontSize: '12px' }}>
+                {row.page ?? '—'}
               </td>
               <td style={{ textAlign: 'center' }}>
                 <input

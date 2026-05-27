@@ -43,10 +43,11 @@ async def extract_pdf(file: UploadFile = File(...)):
             "original": text,
             "type": typ,
             "fontSize": round(size, 1),
+            "page": page,
             "russian": "",
             "enabled": typ in DEFAULT_ENABLED_TYPES,
         }
-        for text, typ, size in lines
+        for text, typ, size, page in lines
     ]
     return {"items": items}
 
@@ -139,8 +140,9 @@ async def parse_csv(file: UploadFile = File(...), delimiter: str = Form(",")):
             except: return None
         font_size    = _float(row[4]) if len(row) > 4 else None
         font_size_ru = _float(row[5]) if len(row) > 5 else None
+        page         = int(row[6]) if len(row) > 6 and row[6].strip().isdigit() else None
         items.append({"original": orig, "type": typ, "russian": ru, "enabled": enabled,
-                      "fontSize": font_size, "fontSizeRu": font_size_ru})
+                      "fontSize": font_size, "fontSizeRu": font_size_ru, "page": page})
     return {"items": items}
 
 
@@ -152,13 +154,14 @@ async def export_csv(data: dict):
         delimiter = ","
     buf = io.StringIO()
     writer = csv.writer(buf, delimiter=delimiter)
-    writer.writerow(["original", "type", "russian", "enabled", "fontSize", "fontSizeRu"])
+    writer.writerow(["original", "type", "russian", "enabled", "fontSize", "fontSizeRu", "page"])
     for item in items:
         writer.writerow([
             item["original"], item["type"], item["russian"],
             "✓" if item.get("enabled") else "—",
             item.get("fontSize") if item.get("fontSize") is not None else "",
             item.get("fontSizeRu") if item.get("fontSizeRu") is not None else "",
+            item.get("page") if item.get("page") is not None else "",
         ])
     csv_bytes = ("﻿" + buf.getvalue()).encode("utf-8")
     return Response(
