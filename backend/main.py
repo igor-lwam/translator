@@ -43,6 +43,7 @@ async def extract_pdf(file: UploadFile = File(...)):
             "original": text,
             "type": typ,
             "fontSize": round(size, 1),
+            "fontSizeRu": round(size, 1),
             "page": page,
             "russian": "",
             "enabled": typ in DEFAULT_ENABLED_TYPES,
