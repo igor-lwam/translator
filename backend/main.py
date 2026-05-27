@@ -134,7 +134,13 @@ async def parse_csv(file: UploadFile = File(...), delimiter: str = Form(",")):
             enabled = row[3] in ("✓", "True", "true", "1")
         else:
             enabled = typ in DEFAULT_ENABLED_TYPES
-        items.append({"original": orig, "type": typ, "russian": ru, "enabled": enabled})
+        def _float(v):
+            try: return float(v)
+            except: return None
+        font_size    = _float(row[4]) if len(row) > 4 else None
+        font_size_ru = _float(row[5]) if len(row) > 5 else None
+        items.append({"original": orig, "type": typ, "russian": ru, "enabled": enabled,
+                      "fontSize": font_size, "fontSizeRu": font_size_ru})
     return {"items": items}
 
 
@@ -146,11 +152,13 @@ async def export_csv(data: dict):
         delimiter = ","
     buf = io.StringIO()
     writer = csv.writer(buf, delimiter=delimiter)
-    writer.writerow(["original", "type", "russian", "enabled"])
+    writer.writerow(["original", "type", "russian", "enabled", "fontSize", "fontSizeRu"])
     for item in items:
         writer.writerow([
             item["original"], item["type"], item["russian"],
             "✓" if item.get("enabled") else "—",
+            item.get("fontSize") if item.get("fontSize") is not None else "",
+            item.get("fontSizeRu") if item.get("fontSizeRu") is not None else "",
         ])
     csv_bytes = ("﻿" + buf.getvalue()).encode("utf-8")
     return Response(
