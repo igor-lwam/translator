@@ -44,11 +44,11 @@ export default function DictTable({ rows, onUpdateCell }) {
       <table className="dict-table">
         <thead>
           <tr>
-            <th style={{ width: '30%' }}>Оригинал</th>
+            <th style={{ width: '28%' }}>Оригинал</th>
+            <th style={{ width: '64px', textAlign: 'center' }}>Размер, pt</th>
             <th style={{ width: '10%' }}>Тип</th>
             <th>Перевод</th>
-            <th style={{ width: '64px', textAlign: 'center' }}>Размер</th>
-            <th style={{ width: '72px', textAlign: 'center' }}>Размер (пер.)</th>
+            <th style={{ width: '72px', textAlign: 'center' }}>Размер пер., pt</th>
             <th style={{ width: '48px', textAlign: 'center' }}>✓</th>
           </tr>
         </thead>
@@ -60,6 +60,15 @@ export default function DictTable({ rows, onUpdateCell }) {
                   value={row.original}
                   onCommit={v => onUpdateCell(row.id, 'original', v)}
                   placeholder="оригинал..."
+                />
+              </td>
+              <td style={{ textAlign: 'center' }}>
+                <input
+                  type="number"
+                  className="input-fontsize"
+                  value={row.fontSize ?? ''}
+                  min="4" max="72" step="0.5"
+                  onChange={e => onUpdateCell(row.id, 'fontSize', e.target.value ? parseFloat(e.target.value) : null)}
                 />
               </td>
               <td>
@@ -74,15 +83,6 @@ export default function DictTable({ rows, onUpdateCell }) {
                 <EditableCell
                   value={row.russian}
                   onCommit={v => onUpdateCell(row.id, 'russian', v)}
-                />
-              </td>
-              <td style={{ textAlign: 'center' }}>
-                <input
-                  type="number"
-                  className="input-fontsize"
-                  value={row.fontSize ?? ''}
-                  min="4" max="72" step="0.5"
-                  onChange={e => onUpdateCell(row.id, 'fontSize', e.target.value ? parseFloat(e.target.value) : null)}
                 />
               </td>
               <td style={{ textAlign: 'center' }}>
