@@ -115,7 +115,7 @@ def _apply_dict(text: str, sorted_terms: list, line_font_size: float | None = No
         if not ru.strip():
             continue
         if font_size_filter is not None and line_font_size is not None:
-            if abs(line_font_size - font_size_filter) > 0.5:
+            if round(line_font_size, 1) != round(font_size_filter, 1):
                 continue
         if '*' in en:
             parts = en.split('*')
