@@ -108,7 +108,7 @@ def detect_text_type(text: str) -> str:
     return "предложение"
 
 
-def _apply_dict(text: str, sorted_terms: list, all_originals_lower: list[str] | None = None) -> tuple[str, float | None]:
+def _apply_dict(text: str, sorted_terms: list) -> tuple[str, float | None]:
     """Returns (translated_text, font_size_override_or_None)."""
     stripped = text.strip()
     for en, ru, size_override in sorted_terms:
@@ -130,31 +130,7 @@ def _apply_dict(text: str, sorted_terms: list, all_originals_lower: list[str] | 
                 return result, size_override
         elif stripped.lower() == en.strip().lower():
             return ru.strip(), size_override
-    result = text
-    for en, ru, _ in sorted_terms:
-        if ru.strip() and '*' not in en:
-            en_lower = en.strip().lower()
-            # Longer known terms (even untranslated) that contain this term as substring
-            blockers = [o for o in (all_originals_lower or []) if len(o) > len(en_lower) and en_lower in o]
-            pattern = r'(?i)\b' + re.escape(en.strip()) + r'\b'
-            if blockers:
-                snapshot = result
-                def _make_replacer(base: str, block_list: list[str], replacement: str):
-                    def _replacer(m: re.Match) -> str:
-                        base_lower = base.lower()
-                        s, e_ = m.start(), m.end()
-                        for longer in block_list:
-                            pos = base_lower.find(longer)
-                            while pos != -1:
-                                if pos <= s and pos + len(longer) >= e_:
-                                    return m.group(0)  # covered by longer term — skip
-                                pos = base_lower.find(longer, pos + 1)
-                        return replacement
-                    return _replacer
-                result = re.sub(pattern, _make_replacer(snapshot, blockers, ru), result)
-            else:
-                result = re.sub(pattern, ru, result)
-    return result, None
+    return text, None
 
 
 def _block_align(block: dict) -> int:
@@ -210,7 +186,7 @@ def _bg_color(rect: fitz.Rect, drawings: list) -> tuple:
     return (1.0, 1.0, 1.0)
 
 
-def _translate_page(page: fitz.Page, sorted_terms: list, all_originals_lower: list[str] | None = None) -> None:
+def _translate_page(page: fitz.Page, sorted_terms: list) -> None:
     blocks_data = page.get_text("dict")["blocks"]
     replacements = []
 
@@ -220,7 +196,7 @@ def _translate_page(page: fitz.Page, sorted_terms: list, all_originals_lower: li
         for line in block.get("lines", []):
             spans = line.get("spans", [])
             line_text = "".join(sp.get("text", "") for sp in spans)
-            translated, size_override = _apply_dict(line_text, sorted_terms, all_originals_lower)
+            translated, size_override = _apply_dict(line_text, sorted_terms)
             if translated.strip() == line_text.strip() or not translated.strip():
                 continue
             rect = fitz.Rect(line["bbox"])
@@ -294,13 +270,13 @@ def _translate_page(page: fitz.Page, sorted_terms: list, all_originals_lower: li
 # ---------------------------------------------------------------------------
 
 def translate_pdf_bytes(pdf_bytes: bytes, sorted_terms: list,
-                        progress_cb=None, all_originals_lower: list[str] | None = None) -> bytes:
+                        progress_cb=None) -> bytes:
     doc = fitz.open(stream=pdf_bytes, filetype="pdf")
     n = len(doc)
     for idx in range(n):
         if progress_cb:
             progress_cb(idx + 1, n)
-        _translate_page(doc[idx], sorted_terms, all_originals_lower)
+        _translate_page(doc[idx], sorted_terms)
     buf = io.BytesIO()
     doc.save(buf, garbage=4, deflate=True)
     doc.close()
