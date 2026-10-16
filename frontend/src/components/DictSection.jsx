@@ -152,6 +152,17 @@ export default function DictSection({ dict, onUpdateCell, onAddRow, onClearDict,
     <section className="card">
       <h2>Шаг 1 — Словарь переводов</h2>
 
+      <div className="hint wildcard-hint">
+        <strong>Шаблоны со <code>*</code>.</strong> <code>*</code> заменяет любую часть строки:{' '}
+        <code>Creation: *</code> → <code>Создание: *</code> превратит «Creation: 2024-01-15» в «Создание: 2024-01-15».
+        Шаблон должен совпасть со всей строкой PDF целиком (регистр не важен), подставленные куски не переводятся.
+        <ul>
+          <li>Ставьте в переводе столько же <code>*</code>, сколько в оригинале. Лишние куски пропадут, лишние <code>*</code> останутся в PDF как есть.</li>
+          <li>Не делайте слишком общих шаблонов вроде <code>*</code> или <code>* *</code>: они заменят почти весь текст.</li>
+          <li>Точные строки длиннее шаблона проверяются раньше него. Авто-перевод строки со <code>*</code> пропускает.</li>
+        </ul>
+      </div>
+
       {/* Toolbar */}
       <div className="toolbar">
         <div className="toolbar-group">
