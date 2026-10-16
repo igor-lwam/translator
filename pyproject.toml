@@ -4,7 +4,6 @@ version = "0.2.0"
 description = "PDF Translator — FastAPI + React"
 requires-python = ">=3.12"
 dependencies = [
-    "deep-translator>=1.11.4",
     "fastapi>=0.115.0",
     "pymupdf>=1.27.2.3",
     "python-multipart>=0.0.12",

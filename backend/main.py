@@ -10,10 +10,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import Response, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 
+from gtranslate import TranslateError, translate_texts
 from translator import (
     DEFAULT_ENABLED_TYPES,
-    _translator_available,
-    auto_translate_texts,
     detect_text_type,
     extract_lines_from_pdf_bytes,
     translate_pdf_bytes,
@@ -96,15 +95,16 @@ async def translate_pdf(file: UploadFile = File(...), terms: str = Form(...)):
 
 @app.post("/api/auto-translate")
 async def auto_translate(data: dict):
-    if not _translator_available:
-        return Response(
-            content=json.dumps({"error": "deep-translator не установлен"}),
-            status_code=400,
-            media_type="application/json",
-        )
     texts = data.get("texts", [])
     loop = asyncio.get_event_loop()
-    results = await loop.run_in_executor(None, lambda: auto_translate_texts(texts))
+    try:
+        results = await loop.run_in_executor(None, lambda: translate_texts(texts))
+    except TranslateError as e:
+        return Response(
+            content=json.dumps({"error": f"Google Translate недоступен: {e}"}, ensure_ascii=False),
+            status_code=502,
+            media_type="application/json",
+        )
     return {"results": results}
 
 

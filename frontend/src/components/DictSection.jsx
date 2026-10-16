@@ -128,15 +128,17 @@ export default function DictSection({ dict, onUpdateCell, onAddRow, onClearDict,
         body: JSON.stringify({ texts }),
       })
       const data = await res.json()
-      if (data.error) { flash(data.error, 'error'); return }
+      if (!res.ok || data.error) { flash(data.error || `Ошибка сервера: ${res.status}`, 'error'); return }
       dict.forEach(row => {
         if (data.results[row.original]) onUpdateCell(row.id, 'russian', data.results[row.original])
       })
-      flash(`Переведено: ${Object.keys(data.results).length} строк`)
+      const done = texts.filter(t => data.results[t]).length
+      flash(`Переведено: ${done} из ${texts.length} строк`, done < texts.length ? 'warn' : 'info')
     } catch (err) {
       flash('Ошибка авто-перевода: ' + err.message, 'error')
+    } finally {
+      setLoading('')
     }
-    setLoading('')
   }
 
   function handleAddRow() {

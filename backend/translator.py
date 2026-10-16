@@ -5,12 +5,6 @@ import re
 import sys
 from pathlib import Path
 
-try:
-    from deep_translator import GoogleTranslator
-    _translator_available = True
-except ImportError:
-    _translator_available = False
-
 import fitz
 
 # ---------------------------------------------------------------------------
@@ -313,34 +307,3 @@ def extract_lines_from_pdf_bytes(pdf_bytes: bytes,
     doc.close()
     return [(text, typ, size, page) for (text, size), (typ, page) in seen.items()]
 
-
-def auto_translate_texts(texts: list[str], progress_cb=None) -> dict[str, str]:
-    if not _translator_available:
-        raise RuntimeError("deep-translator not installed")
-    translator = GoogleTranslator(source="en", target="ru")
-    results: dict[str, str] = {}
-    batch_size = 30
-    for i in range(0, len(texts), batch_size):
-        batch = texts[i:i + batch_size]
-        joined = "\n---\n".join(batch)
-        try:
-            translated = translator.translate(joined)
-            parts = [p.strip() for p in translated.split("\n---\n")]
-            if len(parts) == len(batch):
-                for orig, ru in zip(batch, parts):
-                    results[orig] = ru
-            else:
-                for text in batch:
-                    try:
-                        results[text] = translator.translate(text)
-                    except Exception:
-                        results[text] = ""
-        except Exception:
-            for text in batch:
-                try:
-                    results[text] = translator.translate(text)
-                except Exception:
-                    results[text] = ""
-        if progress_cb:
-            progress_cb(min(i + batch_size, len(texts)), len(texts))
-    return results
